@@ -7,7 +7,7 @@ import (
 	"crud-go/repository"
 	"crud-go/service"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
@@ -18,20 +18,9 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 
-	r := gin.Default()
+	app := fiber.New()
 
-	// === Global error middleware ===
-	r.Use(func(c *gin.Context) {
-		c.Next() // process request
+	userController.RegisterRoutes(app)
 
-		if len(c.Errors) > 0 {
-			// pick the first error
-			c.JSON(-1, gin.H{"message": c.Errors[0].Error()})
-		}
-	})
-
-	// Register routes
-	userController.RegisterRoutes(r)
-
-	r.Run(":8090")
+	app.Listen(":8090")
 }

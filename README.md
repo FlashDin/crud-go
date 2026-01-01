@@ -1,7 +1,7 @@
 # go-media
 
-- add gin
-`go get -u github.com/gin-gonic/gin`
+- add fiber
+`go get github.com/gofiber/fiber/v2`
 - GORM
 `go get -u gorm.io/gorm`
 `go get -u gorm.io/driver/sqlite`
