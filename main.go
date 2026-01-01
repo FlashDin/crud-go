@@ -1,7 +1,9 @@
 package main
 
 import (
+	"crud-go/config"
 	"crud-go/controller"
+	"crud-go/model"
 	"crud-go/repository"
 	"crud-go/service"
 
@@ -9,13 +11,16 @@ import (
 )
 
 func main() {
-	// Dependency wiring (like Spring DI)
-	userRepo := repository.NewUserRepository()
+	db := config.ConnectDatabase()
+
+	// Auto create table (like Hibernate ddl-auto)
+	db.AutoMigrate(&model.User{})
+
+	userRepo := repository.NewUserRepository(db)
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 
 	r := gin.Default()
-
 	userController.RegisterRoutes(r)
 
 	r.Run(":8090")

@@ -2,56 +2,35 @@ package repository
 
 import (
 	"crud-go/model"
-	"sync"
+
+	"gorm.io/gorm"
 )
 
 type UserRepository struct {
-	data   map[int]model.User
-	nextID int
-	mu     sync.Mutex
+	db *gorm.DB
 }
 
-func NewUserRepository() *UserRepository {
-	return &UserRepository{
-		data:   make(map[int]model.User),
-		nextID: 1,
-	}
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
 func (r *UserRepository) FindAll() []model.User {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
 	var users []model.User
-	for _, u := range r.data {
-		users = append(users, u)
-	}
+	r.db.Find(&users)
 	return users
 }
 
-func (r *UserRepository) FindByID(id int) (model.User, bool) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	u, ok := r.data[id]
-	return u, ok
+func (r *UserRepository) FindByID(id uint) (model.User, bool) {
+	var user model.User
+	result := r.db.First(&user, id)
+	return user, result.Error == nil
 }
 
 func (r *UserRepository) Save(user model.User) model.User {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	if user.ID == 0 {
-		user.ID = r.nextID
-		r.nextID++
-	}
-	r.data[user.ID] = user
+	r.db.Save(&user)
 	return user
 }
 
-func (r *UserRepository) Delete(id int) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	delete(r.data, id)
+func (r *UserRepository) Delete(id uint) {
+	r.db.Delete(&model.User{}, id)
 }

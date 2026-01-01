@@ -16,12 +16,12 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 
 func (s *UserService) GetAll() []dto.UserResponse {
 	users := s.repo.FindAll()
-	var result []dto.UserResponse
+	var res []dto.UserResponse
 
 	for _, u := range users {
-		result = append(result, toResponse(u))
+		res = append(res, toResponse(u))
 	}
-	return result
+	return res
 }
 
 func (s *UserService) Create(req dto.UserRequest) dto.UserResponse {
@@ -35,7 +35,7 @@ func (s *UserService) Create(req dto.UserRequest) dto.UserResponse {
 
 func toResponse(u model.User) dto.UserResponse {
 	return dto.UserResponse{
-		ID:   u.ID,
+		ID:   uint(u.ID),
 		Name: u.Name,
 		Age:  u.Age,
 	}
