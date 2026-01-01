@@ -3,6 +3,7 @@ package controller
 import (
 	"crud-go/dto"
 	"crud-go/service"
+	"crud-go/util"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,6 @@ func NewUserController(service *service.UserService) *UserController {
 	return &UserController{service: service}
 }
 
-// Like @RequestMapping("/users")
 func (c *UserController) RegisterRoutes(r *gin.Engine) {
 	users := r.Group("/users")
 	{
@@ -25,18 +25,26 @@ func (c *UserController) RegisterRoutes(r *gin.Engine) {
 	}
 }
 
-// GET /users
 func (c *UserController) getAll(ctx *gin.Context) {
-	users := c.service.GetAll()
-	ctx.JSON(http.StatusOK, users)
+	ctx.JSON(http.StatusOK, c.service.GetAll())
 }
 
-// POST /users
 func (c *UserController) create(ctx *gin.Context) {
 	var req dto.UserRequest
 
+	// @Valid equivalent
+	//if err := ctx.ShouldBindJSON(&req); err != nil {
+	//	ctx.JSON(http.StatusBadRequest, gin.H{
+	//		"message": "Validation failed",
+	//		"error":   err.Error(),
+	//	})
+	//	return
+	//}
+
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"message": util.ParseValidationError(err),
+		})
 		return
 	}
 
