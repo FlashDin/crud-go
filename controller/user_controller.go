@@ -3,8 +3,9 @@ package controller
 import (
 	"crud-go/dto"
 	"crud-go/service"
-	"encoding/json"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
@@ -15,25 +16,30 @@ func NewUserController(service *service.UserService) *UserController {
 	return &UserController{service: service}
 }
 
-func (c *UserController) RegisterRoutes() {
-	http.HandleFunc("/users", c.handleUsers)
+// Like @RequestMapping("/users")
+func (c *UserController) RegisterRoutes(r *gin.Engine) {
+	users := r.Group("/users")
+	{
+		users.GET("", c.getAll)
+		users.POST("", c.create)
+	}
 }
 
-func (c *UserController) handleUsers(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		users := c.service.GetAll()
-		json.NewEncoder(w).Encode(users)
+// GET /users
+func (c *UserController) getAll(ctx *gin.Context) {
+	users := c.service.GetAll()
+	ctx.JSON(http.StatusOK, users)
+}
 
-	case http.MethodPost:
-		var req dto.UserRequest
-		json.NewDecoder(r.Body).Decode(&req)
+// POST /users
+func (c *UserController) create(ctx *gin.Context) {
+	var req dto.UserRequest
 
-		res := c.service.Create(req)
-		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(res)
-
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
+
+	res := c.service.Create(req)
+	ctx.JSON(http.StatusCreated, res)
 }

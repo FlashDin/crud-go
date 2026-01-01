@@ -4,17 +4,19 @@ import (
 	"crud-go/controller"
 	"crud-go/repository"
 	"crud-go/service"
-	"log"
-	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
+	// Dependency wiring (like Spring DI)
 	userRepo := repository.NewUserRepository()
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 
-	userController.RegisterRoutes()
+	r := gin.Default()
 
-	log.Println("Server started on :8090")
-	log.Fatal(http.ListenAndServe(":8090", nil))
+	userController.RegisterRoutes(r)
+
+	r.Run(":8090")
 }
