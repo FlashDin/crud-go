@@ -12,8 +12,6 @@ import (
 
 func main() {
 	db := config.ConnectDatabase()
-
-	// Auto create table (like Hibernate ddl-auto)
 	db.AutoMigrate(&model.User{})
 
 	userRepo := repository.NewUserRepository(db)
@@ -21,6 +19,18 @@ func main() {
 	userController := controller.NewUserController(userService)
 
 	r := gin.Default()
+
+	// === Global error middleware ===
+	r.Use(func(c *gin.Context) {
+		c.Next() // process request
+
+		if len(c.Errors) > 0 {
+			// pick the first error
+			c.JSON(-1, gin.H{"message": c.Errors[0].Error()})
+		}
+	})
+
+	// Register routes
 	userController.RegisterRoutes(r)
 
 	r.Run(":8090")

@@ -20,10 +20,13 @@ func (r *UserRepository) FindAll() []model.User {
 	return users
 }
 
-func (r *UserRepository) FindByID(id uint) (model.User, bool) {
+func (r *UserRepository) FindByID(id uint) (model.User, error) {
 	var user model.User
 	result := r.db.First(&user, id)
-	return user, result.Error == nil
+	if result.Error != nil {
+		return user, result.Error
+	}
+	return user, nil
 }
 
 func (r *UserRepository) Save(user model.User) model.User {
@@ -31,6 +34,10 @@ func (r *UserRepository) Save(user model.User) model.User {
 	return user
 }
 
-func (r *UserRepository) Delete(id uint) {
-	r.db.Delete(&model.User{}, id)
+func (r *UserRepository) Delete(id uint) error {
+	result := r.db.Delete(&model.User{}, id)
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return result.Error
 }
